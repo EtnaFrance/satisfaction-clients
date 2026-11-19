@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Satisfaction clients — Questionnaire de fin de chantier</title>
+<style>
+:root{
+  --bg:#f4f5f7; --card:#fff; --ink:#1d2430; --muted:#667085; --line:#e4e7ec;
+  --accent:#1f4e79;
+  --promo:#2e8b57; --neutre:#c8ccd3; --detra:#d64545;
+  --oui:#2e8b57; --ptaf:#e0a526; --non:#d64545; --autre:#98a2b3;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+header{background:var(--accent);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;font-weight:600}
+header .src{font-size:12px;opacity:.85;margin-left:auto;text-align:right}
+main{padding:16px 24px 40px;max-width:1500px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.card h2{font-size:13px;font-weight:600;margin:0 0 10px;color:var(--ink)}
+.card h2 small{font-weight:400;color:var(--muted)}
+button,.btn{font:inherit;border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 10px;cursor:pointer;color:var(--ink)}
+button:hover,.btn:hover{border-color:var(--accent)}
+.btn-primary{background:#fff;color:var(--accent);border-color:#fff;font-weight:600}
+/* drop zone */
+#drop{border:2px dashed #b8c2d1;border-radius:12px;padding:48px 24px;text-align:center;background:#fff;margin:24px auto;max-width:720px}
+#drop.over{border-color:var(--accent);background:#eef4fb}
+#drop p{color:var(--muted);margin:8px 0}
+#err{color:var(--non);margin-top:10px;white-space:pre-wrap}
+/* filters */
+.filters{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;margin-bottom:14px}
+.f label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.f input,.f select{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.period{font-size:13px;color:var(--muted)}
+.period b{color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer;user-select:none}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chip .n{opacity:.6;margin-left:4px}
+/* kpi */
+.kpis{display:grid;grid-template-columns:1.4fr 1.4fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.kpi .val{font-size:40px;font-weight:700;line-height:1.1}
+.kpi .lbl{font-size:12px;color:var(--muted)}
+.kpi .status{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;color:#fff}
+.scale{display:flex;height:10px;border-radius:5px;overflow:hidden;margin-top:12px;position:relative}
+.scale span{display:block;height:100%}
+.scale-wrap{position:relative}
+.marker{position:absolute;top:-4px;width:2px;height:18px;background:var(--ink)}
+.scale-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px}
+.mini .val{font-size:26px;font-weight:700}
+.mini .sub{font-size:12px;color:var(--muted)}
+/* grid of charts */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:12px;margin-bottom:12px}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--muted);margin:-4px 0 8px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.hrow{display:grid;grid-template-columns:170px 1fr 62px;align-items:center;gap:8px;margin:4px 0;font-size:12px}
+.hrow .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.hrow .name:hover{color:var(--accent);text-decoration:underline}
+.hrow .n{color:var(--muted);text-align:right;font-size:11px}
+.bar{display:flex;height:20px;border-radius:4px;overflow:hidden;background:#f0f2f5}
+.bar span{display:flex;align-items:center;justify-content:center;color:#fff;font-size:10.5px;font-weight:600;white-space:nowrap;overflow:hidden}
+.bar span.light{color:#344054}
+/* nps diverging */
+.dv{position:relative;height:20px;background:#f0f2f5;border-radius:4px}
+.dv .axis{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:#98a2b3}
+.dv .fill{position:absolute;top:0;bottom:0;border-radius:3px}
+.hrow.nps{grid-template-columns:170px 1fr 52px 62px}
+.hrow.hdr{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px}
+.hrow.hdr div{cursor:default!important;text-decoration:none!important;color:var(--muted)!important}
+.kpi .expl,.mini .expl{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.4}
+.chips-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+.howto{font-size:12.5px;line-height:1.6;color:#344054}
+.howto h2{margin-bottom:6px}
+.howto ul{margin:0;padding-left:18px}
+.hrow .nv{text-align:right;font-weight:600;font-size:12px}
+/* trend */
+.trend{display:flex;align-items:flex-end;gap:6px;height:170px;padding-top:18px;border-bottom:1px solid var(--line);position:relative}
+.trend .col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative}
+.trend .b{width:100%;max-width:40px;border-radius:3px 3px 0 0}
+.trend .t{font-size:10.5px;font-weight:600;margin-bottom:2px}
+.trend .zero{position:absolute;left:0;right:0;border-top:1px dashed #98a2b3}
+.tlabels{display:flex;gap:6px;font-size:10px;color:var(--muted);margin-top:4px}
+.tlabels div{flex:1 1 0;min-width:0;text-align:center;font-size:10px;line-height:1.5}
+/* tables */
+.two{display:grid;grid-template-columns:1fr 1.3fr;gap:12px;margin-bottom:12px}
+.tbl-wrap{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{position:sticky;top:0;background:#f8f9fb;font-weight:600;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#f5f8fc}
+tbody tr.sel{background:#e3edf8}
+td.c{text-align:center}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%}
+.comments dl{margin:0}
+.comments dt{font-weight:600;font-size:12px;color:var(--accent);margin-top:12px}
+.comments dt:first-child{margin-top:0}
+.comments dd{margin:4px 0 0;font-size:13px;line-height:1.45}
+.comments .meta{font-size:12px;color:var(--muted);margin-bottom:8px}
+.empty{color:var(--muted);font-style:italic}
+.search{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;width:240px;margin-bottom:8px}
+.note{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.5}
+.hidden{display:none!important}
+@media (max-width:1100px){.kpis{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}}
+@media (max-width:520px){.grid{grid-template-columns:1fr}.hrow{grid-template-columns:110px 1fr 52px}.hrow.nps{grid-template-columns:110px 1fr 44px 52px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Satisfaction clients — Questionnaire de fin de chantier</h1>
+  <button class="btn btn-primary" id="refresh" style="display:none">Actualiser les données</button>
+  <label class="btn btn-primary" id="reload" style="display:none">Charger un autre fichier<input type="file" accept=".xlsx" hidden></label>
+  <div class="src" id="src"></div>
+</header>
+<main>
+  <div id="connect" class="card hidden" style="max-width:720px;margin:24px auto;text-align:center;padding:28px">
+    <h2 style="margin:0 0 8px;font-size:18px">Résultats de l'enquête de satisfaction</h2>
+    <p style="color:var(--muted);margin:0 0 16px">Les réponses sont lues directement dans la liste SharePoint, mise à jour automatiquement après chaque appel.</p>
+    <button id="bLogin" class="btn" style="background:var(--accent);color:#fff;border-color:var(--accent);padding:10px 18px;font-weight:600">Se connecter avec mon compte Etna France</button>
+    <div id="cMsg" style="margin-top:12px;color:var(--muted)"></div>
+    <div id="cErr" style="margin-top:10px;color:var(--non);white-space:pre-wrap"></div>
+  </div>
+  <div id="drop">
+    <h2 style="margin:0 0 6px;font-size:18px">Déposez ici l'export Excel du formulaire</h2>
+    <p>Fichier « Questionnaire de fin de chantier (…).xlsx » issu de Microsoft Forms</p>
+    <p><label class="btn">Choisir le fichier…<input type="file" accept=".xlsx" hidden></label></p>
+    <p style="font-size:12px">Le fichier est lu uniquement dans votre navigateur : aucune donnée n'est envoyée.</p>
+    <div id="err"></div>
+  </div>
+
+  <section id="dash" class="hidden">
+    <div class="filters">
+      <div class="f"><label for="fEnd">Date de fin</label><input type="date" id="fEnd"></div>
+      <div class="f"><label for="fWin">Période</label>
+        <select id="fWin">
+          <option value="3">3 mois glissants</option>
+          <option value="6">6 mois glissants</option>
+          <option value="12" selected>12 mois glissants</option>
+          <option value="24">24 mois glissants</option>
+          <option value="0">Toutes les données</option>
+        </select></div>
+      <div class="f"><label>&nbsp;</label>
+        <button id="bToday">Aujourd'hui</button>
+        <button id="bLast">Dernier appel du fichier</button></div>
+      <div class="period" id="period"></div>
+    </div>
+    <div class="chips-lbl">Filtrer par chargé·e d'affaires — le chiffre indique le nombre de clients ayant répondu sur la période</div>
+    <div class="chips" id="chips"></div>
+
+    <div class="kpis">
+      <div class="card kpi" id="kNps"></div>
+      <div class="card kpi" id="kSat"></div>
+      <div class="card mini" id="kCalls"></div>
+      <div class="card mini" id="kCat"></div>
+      <div class="card mini" id="kAvis"></div>
+    </div>
+
+    <div class="grid">
+      <div class="card"><h2>Catégorie NPS par chargé·e d'affaires</h2>
+        <div class="legend"><span><i style="background:var(--detra)"></i>Détracteur : note de 1 à 6 (client mécontent)</span><span><i style="background:var(--neutre)"></i>Neutre : note 7 ou 8</span><span><i style="background:var(--promo)"></i>Promoteur : note 9 ou 10 (client qui nous recommande)</span></div>
+        <div id="cCat"></div></div>
+      <div class="card"><h2>NPS par chargé·e d'affaires</h2>
+        <div class="legend"><span>Le NPS va de −100 (tous mécontents) à +100 (tous nous recommandent). La ligne verticale marque 0.</span></div>
+        <div id="cNps"></div></div>
+      <div class="card"><h2>Clients satisfaits par chargé·e d'affaires</h2>
+        <div class="legend"><span><i style="background:var(--non)"></i>Insatisfait : note de 1 à 6</span><span><i style="background:var(--oui)"></i>Satisfait : note de 7 à 10</span></div>
+        <div id="cSat"></div></div>
+      <div class="card"><h2>Est-ce que vous êtes satisfait·e de votre appareil ?</h2>
+        <div class="legend lg3"></div><div id="cApp"></div></div>
+      <div class="card"><h2>Avez-vous eu toutes les explications nécessaires ?</h2>
+        <div class="legend lg3"></div><div id="cExp"></div></div>
+      <div class="card"><h2>Est-ce que notre commercial·e vous a bien conseillé·e ?</h2>
+        <div class="legend lg3"></div><div id="cCom"></div></div>
+      <div class="card"><h2>Êtes-vous satisfait·e de l'entreprise de maçonnerie ?</h2>
+        <div class="legend"><span><i style="background:var(--non)"></i>Non</span><span><i style="background:var(--oui)"></i>Oui</span><span><i style="background:var(--autre)"></i>Autre</span></div>
+        <div id="cMac"></div></div>
+      <div class="card"><h2>Évolution du NPS mois par mois</h2>
+        <div class="legend"><span>Le chiffre en gras sous chaque mois est le nombre de clients ayant répondu ce mois-là. Moins il y a de réponses, moins le NPS du mois est fiable. Un mois sans réponse reste vide.</span></div>
+        <div id="cTrend"></div></div>
+    </div>
+
+    <div class="two">
+      <div class="card"><h2>Note de recommandation par affaire</h2>
+        <div class="tbl-wrap" style="max-height:460px"><table id="tAff"></table></div></div>
+      <div class="card comments" id="comments"><h2>Commentaires</h2><div class="empty">Cliquez sur une ligne d'un tableau (à gauche ou en bas) pour afficher ici les réponses et commentaires du client.</div></div>
+    </div>
+
+    <div class="card"><h2>Détail des appels <small id="detN"></small></h2>
+      <input class="search" id="q" placeholder="Rechercher une affaire, un client, un chargé…">
+      <div class="tbl-wrap"><table id="tDet"></table></div>
+    </div>
+
+    <div class="card howto" style="margin-top:12px">
+      <h2>Comment sont calculés ces résultats ?</h2>
+      <ul>
+        <li>Après chaque fin de chantier, le client est appelé et répond au questionnaire. Seuls les clients <b>qui ont répondu</b> (au bout de 1 à 3 appels au maximum) sont pris en compte.</li>
+        <li>La période retenue porte sur la <b>date de l'appel</b> : par défaut, les 12 derniers mois jusqu'à la date de fin choisie.</li>
+        <li>Le client donne une note de 1 à 10 à la question « Recommanderiez-vous Etna France à votre entourage ? ». De 9 à 10, c'est un <b>promoteur</b> ; 7 ou 8, un client <b>neutre</b> ; de 1 à 6, un <b>détracteur</b>.</li>
+        <li><b>NPS</b> = % de promoteurs − % de détracteurs. Par exemple, 60 % de promoteurs et 15 % de détracteurs donnent un NPS de 45.</li>
+        <li><b>Taux de satisfaction</b> = part des clients qui ont donné une note de 7 ou plus.</li>
+        <li>Dans les graphiques, les chargé·e·s d'affaires sont classés du plus grand au plus petit nombre de réponses. Un résultat calculé sur peu de réponses (1 à 5) est à lire avec prudence.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ============================================================
+   0. CONFIGURATION — à renseigner une fois (voir le guide)
+   Laisser TENANT_ID vide pour n'utiliser que le chargement de fichier.
+   ============================================================ */
+const CONFIG = {
+  TENANT_ID: 'b718d6cf-3d3d-44e6-b5ca-8f3cda73d5da',            // ID de l'annuaire (locataire) Entra ID
+  CLIENT_ID: '1c21c79b-e82f-4099-b9e8-b51be2c29593',   // inscription Entra « Satisfaction clients - tableau de bord »
+  SITE: 'etnafrance.sharepoint.com:/sites/ESPACECOLLABORATIF',   // site ETNA CONNECT
+  LIST: 'Satisfaction fin de chantier'   // nom de la liste SharePoint
+};
+</script>
+<script>
+/* ============================================================
+   1. Lecture d'un fichier .xlsx sans bibliothèque externe
+   (ZIP lu via le répertoire central + DecompressionStream)
+   ============================================================ */
+async function inflateRaw(bytes){
+  const ds = new DecompressionStream('deflate-raw');
+  const out = new Blob([bytes]).stream().pipeThrough(ds);
+  return new Uint8Array(await new Response(out).arrayBuffer());
+}
+async function unzip(buf){
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  let eocd = -1;
+  for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 66000); i--){
+    if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error("Ce fichier n'est pas un classeur .xlsx valide.");
+  const n = dv.getUint16(eocd + 10, true);
+  let p = dv.getUint32(eocd + 16, true);
+  const files = {}, dec = new TextDecoder();
+  for (let k = 0; k < n; k++){
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
+    const lho = dv.getUint32(p + 42, true);
+    const name = dec.decode(u8.subarray(p + 46, p + 46 + nl));
+    files[name] = {method, csize, lho};
+    p += 46 + nl + el + cl;
+  }
+  return async function read(name){
+    const f = files[name]; if (!f) return null;
+    const lnl = dv.getUint16(f.lho + 26, true), lel = dv.getUint16(f.lho + 28, true);
+    const start = f.lho + 30 + lnl + lel;
+    const data = u8.subarray(start, start + f.csize);
+    const raw = f.method === 0 ? data : await inflateRaw(data);
+    return dec.decode(raw);
+  };
+}
+function byLocal(node, name){ return Array.from(node.getElementsByTagNameNS('*', name)); }
+function colIndex(ref){ let c = 0; for (const ch of ref.replace(/\d+/g,'')) c = c * 26 + ch.charCodeAt(0) - 64; return c - 1; }
+
+async function readXlsx(buf){
+  const read = await unzip(buf);
+  const P = new DOMParser();
+  // premier onglet
+  let sheetPath = 'xl/worksheets/sheet1.xml';
+  const wb = await read('xl/workbook.xml'), rels = await read('xl/_rels/workbook.xml.rels');
+  if (wb && rels){
+    const s = byLocal(P.parseFromString(wb, 'application/xml'), 'sheet')[0];
+    const rid = s && (s.getAttribute('r:id') || s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id'));
+    const rel = byLocal(P.parseFromString(rels, 'application/xml'), 'Relationship').find(r => r.getAttribute('Id') === rid);
+    if (rel){ const t = rel.getAttribute('Target').replace(/^\//,''); sheetPath = t.startsWith('xl/') ? t : 'xl/' + t; }
+  }
+  const sst = [];
+  const ssx = await read('xl/sharedStrings.xml');
+  if (ssx) for (const si of byLocal(P.parseFromString(ssx, 'application/xml'), 'si'))
+    sst.push(byLocal(si, 't').map(t => t.textContent).join(''));
+  const sx = await read(sheetPath);
+  if (!sx) throw new Error("Onglet introuvable dans le classeur.");
+  const rows = [];
+  for (const r of byLocal(P.parseFromString(sx, 'application/xml'), 'row')){
+    const arr = [];
+    for (const c of byLocal(r, 'c')){
+      const t = c.getAttribute('t'), v = byLocal(c, 'v')[0];
+      let val = null;
+      if (t === 's'){ if (v) val = sst[+v.textContent]; }
+      else if (t === 'inlineStr'){ val = byLocal(c, 't').map(x => x.textContent).join(''); }
+      else if (t === 'str' || t === 'b'){ if (v) val = v.textContent; }
+      else if (v){ val = +v.textContent; }
+      arr[colIndex(c.getAttribute('r'))] = (val === '' ? null : val);
+    }
+    rows.push(arr);
+  }
+  const head = rows.shift().map(h => h == null ? '' : String(h));
+  return rows.filter(r => r.some(v => v != null)).map(r => Object.fromEntries(head.map((h, i) => [h, r[i] ?? null])));
+}
+
+/* ============================================================
+   2. Normalisation des réponses (indépendante de la source :
+   la même fonction servira pour Microsoft Graph plus tard)
+   ============================================================ */
+const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[·•]/g,'').replace(/[’']/g,"'").toLowerCase().trim();
+function findCol(headers, test){ return headers.find(h => test(norm(h))) || null; }
+function toISO(v){
+  if (v == null || v === '') return null;
+  if (typeof v === 'number'){ const d = new Date(Math.round((v - 25569) * 864e5)); return d.toISOString().slice(0,10); }
+  const s = String(v).trim();
+  if (/^\d{4}-\d{2}-\d{2}T/.test(s)){ // date SharePoint (UTC) -> date locale
+    const d = new Date(s); if (!isNaN(d)) return new Date(d.getTime() - d.getTimezoneOffset()*6e4).toISOString().slice(0,10); }
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  return null;
+}
+function normalizeRows(raw){
+  const H = Object.keys(raw[0] || {});
+  const C = {
+    date: findCol(H, h => h.startsWith("date de l'appel")),
+    affNum: findCol(H, h => h.includes("n de l'affaire") || h.includes("n° de l'affaire")),
+    affNom: findCol(H, h => h.startsWith("nom de l'affaire")),
+    charge: findCol(H, h => h.includes('charg') && h.includes('affaire')),
+    tel: findCol(H, h => h.includes('telephone')),
+    enqueteur: findCol(H, h => h === 'nom'),
+    repondu: findCol(H, h => h.includes('a repondu')),
+    install: findCol(H, h => h.includes('installation') && h.includes('termin')),
+    appareil: findCol(H, h => h.includes('satisfait') && h.includes('appareil')),
+    expli: findCol(H, h => h.includes('explications')),
+    commercial: findCol(H, h => h.includes('commercial')),
+    note: findCol(H, h => h.includes('recommanderiez')),
+    macon: findCol(H, h => h.includes('maconnerie') && h.includes('satisfait')),
+    maconCoord: findCol(H, h => h.includes('coordonnees')),
+    remarques: findCol(H, h => h.includes('remarques')),
+    avis: findCol(H, h => h.includes('avis favorable')),
+    c1: findCol(H, h => h === 'commentaires'), c2: findCol(H, h => h === 'commentaires2'),
+    c3: findCol(H, h => h === 'commentaires3'), c4: findCol(H, h => h === 'commentaires4'),
+    c5: findCol(H, h => h === 'commentaires5'),
+  };
+  const missing = ['date','charge','repondu','note'].filter(k => !C[k]);
+  if (missing.length) throw new Error("Colonnes attendues introuvables : " + missing.join(', ') + ".\nVérifiez qu'il s'agit bien de l'export du questionnaire de fin de chantier.");
+  const g = (r, k) => C[k] ? r[C[k]] : null;
+  const txt = v => v == null ? '' : String(v).trim();
+  return raw.map(r => {
+    const n = g(r,'note'); const note = (n === null || n === '' || isNaN(+n)) ? null : +n;
+    return {
+      date: toISO(g(r,'date')), affNum: txt(g(r,'affNum')), affNom: txt(g(r,'affNom')),
+      charge: txt(g(r,'charge')) || '(non renseigné)', tel: txt(g(r,'tel')), enqueteur: txt(g(r,'enqueteur')),
+      repondu: norm(txt(g(r,'repondu'))) === 'oui',
+      install: txt(g(r,'install')), appareil: txt(g(r,'appareil')), expli: txt(g(r,'expli')),
+      commercial: txt(g(r,'commercial')), note, macon: txt(g(r,'macon')), maconCoord: txt(g(r,'maconCoord')),
+      remarques: txt(g(r,'remarques')), avis: txt(g(r,'avis')),
+      com: { install: txt(g(r,'c1')), appareil: txt(g(r,'c2')), expli: txt(g(r,'c3')), commercial: txt(g(r,'c4')), general: txt(g(r,'c5')) }
+    };
+  }).filter(r => r.date);
+}
+
+/* ============================================================
+   3. État, filtres et calculs
+   ============================================================ */
+const S = { rows: [], source: '', sel: new Set(), selRow: null, sortDet: {k:'date', d:-1} };
+const $ = id => document.getElementById(id);
+const todayISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset()*6e4).toISOString().slice(0,10); };
+function startOf(endISO, months){
+  if (!months) return '0000-01-01';
+  const [y,m,d] = endISO.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1 - months, d + 1)).toISOString().slice(0,10);
+}
+const fmtD = iso => new Date(iso + 'T12:00:00').toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric'});
+const fmtLong = iso => new Date(iso + 'T12:00:00').toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+const fr1 = x => x.toLocaleString('fr-FR', {minimumFractionDigits:1, maximumFractionDigits:1});
+const fr2 = x => x.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cat = n => n == null ? null : n >= 9 ? 'P' : n >= 7 ? 'N' : 'D';
+function npsOf(list){
+  const notes = list.map(r => r.note).filter(n => n != null);
+  if (!notes.length) return null;
+  const p = notes.filter(n => n >= 9).length, d = notes.filter(n => n <= 6).length;
+  return { nps: (p - d) / notes.length * 100, sat: notes.filter(n => n >= 7).length / notes.length * 100,
+           n: notes.length, p, d, ne: notes.length - p - d };
+}
+function windowRows(){
+  const end = $('fEnd').value || todayISO(), months = +$('fWin').value, start = startOf(end, months);
+  const all = S.rows.filter(r => r.date >= start && r.date <= end);
+  return { start, end, months, all, ans: all.filter(r => r.repondu) };
+}
+
+const NPS_BANDS = [[-100,30,'#d64545','Alerte critique'],[30,50,'#e0a526','Standard du secteur'],[50,70,'#7cb862','Très bon'],[70,80,'#3a9a5b','Excellent'],[80,100,'#1e6b3f','Exceptionnel']];
+const SAT_BANDS = [[0,70,'#d64545','Alerte'],[70,80,'#e0a526','Acceptable'],[80,90,'#7cb862','Bon'],[90,95,'#3a9a5b','Très bon'],[95,100,'#1e6b3f','Excellent']];
+const band = (v, B) => B.find(b => v < b[1]) || B[B.length - 1];
+
+function kpiTile(el, title, v, txt, B, min, expl){
+  if (v == null){ el.innerHTML = `<div class="lbl">${title}</div><div class="val">–</div><div class="lbl">Aucune note sur la période</div>`; return; }
+  // échelle à segments égaux (un par seuil), le repère est interpolé dans son segment
+  const b = band(v, B), i = B.indexOf(b), w = 100 / B.length;
+  const lo = Math.max(b[0], min), pos = i * w + Math.max(0, Math.min(1, (v - lo) / (b[1] - lo))) * w;
+  const segs = B.map(x => `<span style="width:${w}%;background:${x[2]}" title="${x[3]}"></span>`).join('');
+  const ticks = B.map((x, k) => `<span style="position:absolute;left:${k * w}%;${k ? 'transform:translateX(-50%)' : ''}">${k ? x[0] : (min < 0 ? '−100' : '0')}</span>`).join('')
+              + `<span style="position:absolute;right:0">${B[B.length-1][1]}</span>`;
+  const names = B.map((x, k) => `<span style="position:absolute;left:${k * w}%;width:${w}%;text-align:center">${x[3]}</span>`).join('');
+  el.innerHTML = `<div class="lbl">${title}</div>
+    <div class="val" style="color:${b[2]}">${txt}</div>
+    <span class="status" style="background:${b[2]}">${b[3]}</span>
+    <div class="scale-wrap"><div class="scale">${segs}</div><div class="marker" style="left:calc(${pos}% - 1px);top:8px"></div></div>
+    <div class="scale-lbl" style="position:relative;height:12px">${ticks}</div>
+    <div class="scale-lbl" style="position:relative;height:24px;font-size:9.5px">${names}</div>
+    <div class="expl">${expl}</div>`;
+}
+
+function chargesOrdered(ans){
+  const m = new Map();
+  for (const r of ans) m.set(r.charge, (m.get(r.charge) || 0) + 1);
+  return [...m.entries()].sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(e => e[0]);
+}
+const HDR = `<div class="hrow hdr"><div>Chargé·e d'affaires</div><div>Répartition des réponses</div><div class="n">Réponses</div></div>`;
+function stacked(el, groups, keys, colors, labels, valueOf){
+  let h = HDR;
+  for (const [name, list] of groups){
+    const vals = list.map(valueOf).filter(v => v != null && v !== '');
+    const tot = vals.length;
+    if (!tot){ h += `<div class="hrow"><div class="name" data-c="${esc(name)}">${esc(name)}</div><div class="bar"></div><div class="n">0</div></div>`; continue; }
+    const segs = keys.map((k, i) => {
+      const c = vals.filter(v => v === k).length; if (!c) return '';
+      const pct = c / tot * 100;
+      return `<span class="${colors[i].includes('neutre') || colors[i].includes('autre') ? 'light' : ''}" style="width:${pct}%;background:var(${colors[i]})" title="${esc(labels[i])} : ${c} (${fr2(pct)} %)">${pct >= 18 ? fr2(pct).replace(/,00$/,'') + ' %' : ''}</span>`;
+    }).join('');
+    h += `<div class="hrow"><div class="name" data-c="${esc(name)}" title="${esc(name)}">${esc(name)}</div><div class="bar">${segs}</div><div class="n">${tot}</div></div>`;
+  }
+  el.innerHTML = groups.length ? h : '<div class="empty">Aucune réponse.</div>';
+}
+function ynp(v){ const n = norm(v); if (!n) return null; if (n.startsWith('oui')) return 'Oui'; if (n.startsWith('pas tout')) return 'PTAF'; if (n.startsWith('non')) return 'Non'; return 'Autre'; }
+
+function render(){
+  const W = windowRows();
+  const months = W.months;
+  $('period').innerHTML = months
+    ? `Période : <b>${fmtD(W.start)}</b> → <b>${fmtD(W.end)}</b>`
+    : `Période : <b>toutes les données</b> jusqu'au <b>${fmtD(W.end)}</b>`;
+
+  // chips (sur la période, avant filtre chargé)
+  const order = chargesOrdered(W.ans);
+  const counts = Object.fromEntries(order.map(c => [c, W.ans.filter(r => r.charge === c).length]));
+  for (const c of [...S.sel]) if (!counts[c]) S.sel.delete(c);
+  $('chips').innerHTML = `<span class="chip ${S.sel.size ? '' : 'on'}" data-all="1">Tous les chargé·e·s</span>` +
+    order.map(c => `<span class="chip ${S.sel.has(c) ? 'on' : ''}" data-c="${esc(c)}">${esc(c)}<span class="n">${counts[c]}</span></span>`).join('');
+
+  const inSel = r => !S.sel.size || S.sel.has(r.charge);
+  const all = W.all.filter(inSel), ans = W.ans.filter(inSel);
+  const k = npsOf(ans);
+
+  kpiTile($('kNps'), 'NPS — Net Promoter Score', k && k.nps, k ? fr1(k.nps) : '', NPS_BANDS, -100,
+    'Part des clients qui nous recommandent (note 9 ou 10) moins part des clients mécontents (note de 1 à 6). Va de −100 à +100.');
+  kpiTile($('kSat'), 'Taux de satisfaction', k && k.sat, k ? fr1(k.sat) + ' %' : '', SAT_BANDS, 0,
+    'Part des clients qui ont donné une note de 7 ou plus à la question « Recommanderiez-vous Etna France ? ».');
+  $('kCalls').innerHTML = `<div class="sub">Clients appelés</div><div class="val">${all.length}</div><div class="sub">dont <b>${ans.length}</b> ont répondu (${all.length ? fr1(ans.length/all.length*100) : '–'} %)</div><div class="expl">Seuls les clients qui ont répondu sont pris en compte dans les résultats.</div>`;
+  $('kCat').innerHTML = k ? `<div class="sub">Répartition des clients</div>
+     <div class="sub" style="margin-top:6px;line-height:1.7"><span style="color:var(--promo)">● <b>${k.p}</b> promoteurs (9-10)</span><br><span style="color:#667085">● <b>${k.ne}</b> neutres (7-8)</span><br><span style="color:var(--detra)">● <b>${k.d}</b> détracteurs (1-6)</span></div>`
+     : `<div class="sub">Répartition des clients</div><div class="val">–</div>`;
+  const av = ans.map(r => ynp(r.avis)).filter(Boolean);
+  $('kAvis').innerHTML = `<div class="sub">Clients d'accord pour laisser un avis sur notre site Internet</div><div class="val">${av.length ? fr1(av.filter(v => v === 'Oui').length / av.length * 100) + ' %' : '–'}</div><div class="sub">${av.filter(v => v === 'Oui').length} clients sur ${av.length}</div>`;
+
+  const groups = chargesOrdered(ans).map(c => [c, ans.filter(r => r.charge === c)]);
+  stacked($('cCat'), groups, ['D','N','P'], ['--detra','--neutre','--promo'], ['Détracteur','Neutre','Promoteur'], r => cat(r.note));
+  stacked($('cSat'), groups, ['I','S'], ['--non','--oui'], ['Insatisfait','Satisfait'], r => r.note == null ? null : (r.note >= 7 ? 'S' : 'I'));
+  const K3 = ['Non','PTAF','Oui'], C3 = ['--non','--ptaf','--oui'], L3 = ['Non','Pas tout à fait','Oui'];
+  stacked($('cApp'), groups, K3, C3, L3, r => ynp(r.appareil));
+  stacked($('cExp'), groups, K3, C3, L3, r => ynp(r.expli));
+  stacked($('cCom'), groups, K3, C3, L3, r => ynp(r.commercial));
+  stacked($('cMac'), groups, ['Non','Oui','Autre'], ['--non','--oui','--autre'], ['Non','Oui','Autre'], r => ynp(r.macon));
+
+  // NPS par chargé, trié décroissant
+  const np = groups.map(([c, l]) => [c, npsOf(l)]).filter(x => x[1]).sort((a,b) => b[1].nps - a[1].nps);
+  $('cNps').innerHTML = (np.length ? `<div class="hrow nps hdr"><div>Chargé·e d'affaires</div><div></div><div class="nv">NPS</div><div class="n">Réponses</div></div>` : '') + np.map(([c, v]) => {
+    const w = Math.abs(v.nps) / 2, col = band(v.nps, NPS_BANDS)[2];
+    const left = v.nps >= 0 ? 50 : 50 - w;
+    return `<div class="hrow nps"><div class="name" data-c="${esc(c)}" title="${esc(c)}">${esc(c)}</div>
+      <div class="dv"><div class="axis"></div><div class="fill" style="left:${left}%;width:${w}%;background:${col}"></div></div><div class="nv" style="color:${col}">${fr2(v.nps)}</div>
+      <div class="n">${v.n}</div></div>`;
+  }).join('') || '<div class="empty">Aucune note.</div>';
+
+  // tendance mensuelle
+  const byM = new Map();
+  for (const r of ans){ const m = r.date.slice(0,7); if (!byM.has(m)) byM.set(m, []); byM.get(m).push(r); }
+  const ks = [...byM.keys()].sort(), ms = [];
+  if (ks.length){ let [y, m] = ks[0].split('-').map(Number); const last = ks[ks.length - 1];
+    while (true){ const key = `${y}-${String(m).padStart(2,'0')}`; ms.push(key); if (key >= last) break; m++; if (m > 12){ m = 1; y++; } } }
+  ms.splice(0, Math.max(0, ms.length - 24));
+  if (!ms.length) $('cTrend').innerHTML = '<div class="empty">Aucune réponse.</div>';
+  else {
+    const vals = ms.map(m => byM.has(m) ? npsOf(byM.get(m)) : null);
+    const mx = 100, mn = Math.min(0, ...vals.map(v => v ? v.nps : 0));
+    const H = 150, z = H * (mx / (mx - mn));
+    $('cTrend').innerHTML = `<div class="trend" style="height:${H + 18}px">` +
+      `<div class="zero" style="top:${18 + z}px"></div>` +
+      ms.map((m, i) => { const v = vals[i]; if (!v) return '<div class="col"></div>';
+        const h = Math.abs(v.nps) / (mx - mn) * H, col = band(v.nps, NPS_BANDS)[2];
+        const style = v.nps >= 0 ? `position:absolute;bottom:${H - z}px;height:${h}px` : `position:absolute;top:${18 + z}px;height:${h}px`;
+        return `<div class="col" title="NPS ${fr1(v.nps)} sur ${v.n} réponse${v.n > 1 ? 's' : ''}"><div style="${style};width:100%;display:flex;flex-direction:column;align-items:center;${v.nps>=0?'justify-content:flex-start':'justify-content:flex-end'}">
+          <div class="b" style="height:100%;background:${col}"></div></div>
+          <div class="t" style="position:absolute;${v.nps >= 0 ? `bottom:${H - z + h + 1}px` : `top:${18 + z + h + 1}px`}">${Math.round(v.nps)}</div></div>`;
+      }).join('') + `</div><div class="tlabels">${ms.map(m => { const v = byM.has(m) ? byM.get(m).length : 0;
+        const lab = new Date(m + '-15T12:00:00').toLocaleDateString('fr-FR', {month:'short'}).replace('.', '');
+        return `<div>${lab}<br>${m.slice(0,4)}<br><b style="color:${v ? '#344054' : '#98a2b3'}">${v}</b></div>`; }).join('')}</div>`;
+  }
+
+  // tableau par affaire
+  const aff = new Map();
+  for (const r of ans){ const key = r.affNum || r.affNom; if (!aff.has(key)) aff.set(key, r); else if (r.date > aff.get(key).date) aff.set(key, r); }
+  const affRows = [...aff.values()].sort((a,b) => a.affNum.localeCompare(b.affNum, 'fr', {numeric:true}));
+  const dot = c => c ? `<span class="dot" style="background:var(${c === 'D' ? '--detra' : c === 'N' ? '--neutre' : '--promo'})"></span>` : '';
+  $('tAff').innerHTML = `<thead><tr><th>N° affaire</th><th>Nom de l'affaire</th><th class="c">Note /10</th><th class="c">Détracteur</th><th class="c">Neutre</th><th class="c">Promoteur</th></tr></thead><tbody>` +
+    affRows.map(r => { const c = cat(r.note), i = S.rows.indexOf(r);
+      return `<tr data-i="${i}" class="${S.selRow === i ? 'sel' : ''}"><td>${esc(r.affNum)}</td><td>${esc(r.affNom)}</td><td class="c">${r.note ?? ''}</td><td class="c">${c === 'D' ? dot('D') : ''}</td><td class="c">${c === 'N' ? dot('N') : ''}</td><td class="c">${c === 'P' ? dot('P') : ''}</td></tr>`; }).join('') + '</tbody>';
+
+  // détail
+  const q = norm($('q').value || '');
+  let det = all.filter(r => !q || norm([r.affNum, r.affNom, r.charge, r.enqueteur, r.tel].join(' ')).includes(q));
+  const sk = S.sortDet.k, sd = S.sortDet.d;
+  det.sort((a,b) => { const x = a[sk] ?? '', y = b[sk] ?? ''; return (x < y ? -1 : x > y ? 1 : 0) * sd; });
+  $('detN').textContent = `(${det.length} appels — cliquez sur un titre de colonne pour trier)`;
+  const cols = [['date',"Date de l'appel"],['enqueteur','Appel passé par'],['affNum','N° affaire'],['affNom',"Nom de l'affaire"],['tel','Téléphone'],['charge',"Chargé·e d'affaires"],['repondu','Le client a répondu'],['note','Note /10']];
+  $('tDet').innerHTML = `<thead><tr>${cols.map(([k,l]) => `<th data-k="${k}">${l}${sk === k ? (sd > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr></thead><tbody>` +
+    det.map(r => { const i = S.rows.indexOf(r);
+      return `<tr data-i="${i}" class="${S.selRow === i ? 'sel' : ''}"><td>${fmtD(r.date)}</td><td>${esc(r.enqueteur)}</td><td>${esc(r.affNum)}</td><td>${esc(r.affNom)}</td><td style="white-space:nowrap">${esc(r.tel)}</td><td>${esc(r.charge)}</td><td>${r.repondu ? 'Oui' : 'Non'}</td><td class="c">${r.note ?? ''}</td></tr>`; }).join('') + '</tbody>';
+
+  renderComments();
+}
+
+function renderComments(){
+  const el = $('comments');
+  const r = S.rows[S.selRow];
+  if (!r){ el.innerHTML = '<h2>Commentaires</h2><div class="empty">Cliquez sur une ligne d\'un tableau (à gauche ou en bas) pour afficher ici les réponses et commentaires du client.</div>'; return; }
+  const item = (t, ans, c) => `<dt>${t}</dt><dd>${ans ? `<b>${esc(ans)}</b>` : ''}${ans && c ? ' — ' : ''}${c ? esc(c) : (ans ? '' : '<span class="empty">—</span>')}</dd>`;
+  el.innerHTML = `<h2>Commentaires — ${esc(r.affNom || r.affNum)}</h2>
+    <div class="meta">${fmtLong(r.date)} · ${esc(r.charge)} · ${r.repondu ? 'Note de recommandation : <b>' + (r.note ?? '–') + ' / 10</b>' : 'Le client n\'a pas répondu'}</div>
+    <dl>${item('Installation appareil', r.install, r.com.install)}
+    ${item('Fonctionnement appareil', r.appareil, r.com.appareil)}
+    ${item('Prise en main', r.expli, r.com.expli)}
+    ${item('Conseil achat', r.commercial, r.com.commercial)}
+    ${item('Satisfait de l\'entreprise de maçonnerie', r.macon, r.maconCoord)}
+    ${item('Remarques ou questions', r.remarques, r.com.general)}
+    ${item('Accepte de laisser un avis sur Internet', r.avis, '')}</dl>`;
+}
+
+/* ============================================================
+   4. Chargement et interactions
+   ============================================================ */
+function setData(rows, source){
+  S.rows = rows; S.source = source; S.sel.clear(); S.selRow = null;
+  const last = rows.reduce((m, r) => r.date > m ? r.date : m, '');
+  S.last = last;
+  $('src').innerHTML = `${esc(source)}<br>${rows.length} appels · dernier appel le ${fmtD(last)}`;
+  $('fEnd').value = todayISO();
+  $('drop').classList.add('hidden'); $('connect').classList.add('hidden'); $('dash').classList.remove('hidden'); $('reload').style.display = graphMode() ? 'none' : '';
+  render();
+}
+async function loadFile(file){
+  $('err').textContent = '';
+  try {
+    if (!('DecompressionStream' in window)) throw new Error('Navigateur trop ancien : utilisez une version récente de Edge, Chrome ou Firefox.');
+    const raw = await readXlsx(await file.arrayBuffer());
+    if (!raw.length) throw new Error('Le classeur ne contient aucune réponse.');
+    setData(normalizeRows(raw), file.name);
+  } catch (e){
+    $('drop').classList.remove('hidden'); $('dash').classList.add('hidden');
+    $('err').textContent = e.message || String(e);
+  }
+}
+document.querySelectorAll('input[type=file]').forEach(inp => inp.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); e.target.value = ''; }));
+const drop = $('drop');
+['dragenter','dragover'].forEach(t => document.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(t => document.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+document.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) loadFile(f); });
+
+$('fEnd').addEventListener('change', render);
+$('fWin').addEventListener('change', render);
+$('q').addEventListener('input', render);
+$('bToday').addEventListener('click', () => { $('fEnd').value = todayISO(); render(); });
+$('bLast').addEventListener('click', () => { if (S.last){ $('fEnd').value = S.last; render(); } });
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (chip){ if (chip.dataset.all) S.sel.clear(); else { const c = chip.dataset.c; S.sel.has(c) ? S.sel.delete(c) : S.sel.add(c); } render(); return; }
+  const nm = e.target.closest('.hrow .name');
+  if (nm){ const c = nm.dataset.c; if (S.sel.size === 1 && S.sel.has(c)) S.sel.clear(); else { S.sel.clear(); S.sel.add(c); } render(); return; }
+  const th = e.target.closest('#tDet th');
+  if (th){ const k = th.dataset.k; S.sortDet = { k, d: S.sortDet.k === k ? -S.sortDet.d : (k === 'date' || k === 'note' ? -1 : 1) }; render(); return; }
+  const tr = e.target.closest('tbody tr[data-i]');
+  if (tr){ S.selRow = +tr.dataset.i; document.querySelectorAll('tr.sel').forEach(x => x.classList.remove('sel'));
+    document.querySelectorAll(`tr[data-i="${S.selRow}"]`).forEach(x => x.classList.add('sel')); renderComments(); }
+});
+/* ============================================================
+   5. Connexion Microsoft 365 (OAuth 2.0 + PKCE, sans bibliothèque)
+      et lecture de la liste SharePoint via Microsoft Graph
+   ============================================================ */
+const GRAPH = 'https://graph.microsoft.com/v1.0';
+const SCOPE = 'openid profile offline_access https://graph.microsoft.com/Sites.Read.All';
+const ss = { get: k => { try { return sessionStorage.getItem(k); } catch(e){ return null; } },
+             set: (k, v) => { try { sessionStorage.setItem(k, v); } catch(e){} },
+             del: k => { try { sessionStorage.removeItem(k); } catch(e){} } };
+const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const rnd = n => b64url(crypto.getRandomValues(new Uint8Array(n)));
+const redirectUri = () => location.origin + location.pathname;
+const authBase = () => `https://login.microsoftonline.com/${CONFIG.TENANT_ID}/oauth2/v2.0`;
+
+async function login(){
+  const verifier = rnd(48), state = rnd(16);
+  const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
+  ss.set('pkce_verifier', verifier); ss.set('pkce_state', state);
+  const q = new URLSearchParams({ client_id: CONFIG.CLIENT_ID, response_type: 'code', redirect_uri: redirectUri(),
+    response_mode: 'query', scope: SCOPE, state, code_challenge: challenge, code_challenge_method: 'S256' });
+  location.assign(`${authBase()}/authorize?${q}`);
+}
+async function tokenRequest(params){
+  const r = await fetch(`${authBase()}/token`, { method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: new URLSearchParams({ client_id: CONFIG.CLIENT_ID, scope: SCOPE, ...params }) });
+  const j = await r.json();
+  if (!r.ok) throw new Error('Connexion refusée : ' + (j.error_description || j.error || r.status).split('\r')[0]);
+  ss.set('tok', JSON.stringify({ at: j.access_token, rt: j.refresh_token, exp: Date.now() + (j.expires_in - 120) * 1000 }));
+  return j.access_token;
+}
+async function getToken(){
+  const t = JSON.parse(ss.get('tok') || 'null');
+  if (t && t.exp > Date.now()) return t.at;
+  if (t && t.rt){ try { return await tokenRequest({ grant_type: 'refresh_token', refresh_token: t.rt }); } catch(e){} }
+  return null;
+}
+async function handleRedirect(){
+  const q = new URLSearchParams(location.search);
+  if (q.get('error')) { history.replaceState(null, '', redirectUri()); throw new Error('Connexion refusée : ' + (q.get('error_description') || q.get('error'))); }
+  if (!q.get('code')) return false;
+  history.replaceState(null, '', redirectUri());
+  if (q.get('state') !== ss.get('pkce_state')) throw new Error('La connexion a expiré, veuillez réessayer.');
+  await tokenRequest({ grant_type: 'authorization_code', code: q.get('code'), redirect_uri: redirectUri(), code_verifier: ss.get('pkce_verifier') });
+  ss.del('pkce_verifier'); ss.del('pkce_state');
+  return true;
+}
+async function graphGet(url, token){
+  const r = await fetch(url.startsWith('http') ? url : GRAPH + url, { headers: { Authorization: 'Bearer ' + token } });
+  if (r.status === 401){ ss.del('tok'); throw new Error('Votre session a expiré : reconnectez-vous.'); }
+  if (r.status === 403) throw new Error("Votre compte n'a pas accès à la liste SharePoint des réponses. Demandez l'accès en lecture au responsable qualité.");
+  if (r.status === 404) throw new Error('Site ou liste SharePoint introuvable : vérifier SITE et LIST dans la configuration de la page.');
+  if (!r.ok) throw new Error('Erreur Microsoft Graph (' + r.status + ').');
+  return r.json();
+}
+async function loadFromList(){
+  const token = await getToken();
+  if (!token){ showConnect(); return; }
+  $('cMsg').textContent = 'Chargement des réponses…'; $('cErr').textContent = '';
+  try {
+    const site = await graphGet(`/sites/${CONFIG.SITE}?$select=id`, token);
+    const lists = await graphGet(`/sites/${site.id}/lists?$select=id,displayName&$top=999`, token);
+    const list = (lists.value || []).find(l => norm(l.displayName) === norm(CONFIG.LIST));
+    if (!list) throw new Error(`Liste « ${CONFIG.LIST} » introuvable sur le site SharePoint.`);
+    let url = `/sites/${site.id}/lists/${list.id}/items?$expand=fields&$top=999`, items = [];
+    while (url){ const j = await graphGet(url, token); items.push(...j.value); url = j['@odata.nextLink']; }
+    const stamp = new Date().toLocaleString('fr-FR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+    const keep = { end: $('fEnd').value, win: $('fWin').value, sel: new Set(S.sel), loaded: S.rows.length > 0 };
+    setData(normalizeListItems(items.map(i => i.fields)), `Liste SharePoint « ${CONFIG.LIST} » · actualisée le ${stamp}`);
+    if (keep.loaded){ $('fEnd').value = keep.end; $('fWin').value = keep.win; S.sel = keep.sel; render(); }
+    $('connect').classList.add('hidden'); $('refresh').style.display = '';
+  } catch (e){ showConnect(); $('cErr').textContent = e.message || String(e); $('cMsg').textContent = ''; }
+}
+function showConnect(){
+  $('connect').classList.remove('hidden'); $('dash').classList.add('hidden');
+  $('drop').classList.add('hidden');
+  $('cMsg').innerHTML = `Pas de compte ? <a href="#" id="toFile">Charger un fichier Excel à la place</a>`;
+}
+/* Colonnes de la liste (noms internes, voir le guide) -> format commun */
+// « eric.bricout@etnafrance.com » -> « Eric BRICOUT » (le flux enregistre l'adresse de la personne qui a saisi la réponse)
+function nameFromEmail(m){
+  if (!m || !m.includes('@')) return m || '';
+  const parts = m.split('@')[0].split('.');
+  const cap = w => w.split('-').map(x => x.charAt(0).toUpperCase() + x.slice(1).toLowerCase()).join('-');
+  return parts.length > 1 ? cap(parts[0]) + ' ' + parts.slice(1).join(' ').toUpperCase() : cap(parts[0]);
+}
+function normalizeListItems(F){
+  const t = v => v == null ? '' : String(v).trim();
+  return F.map(f => {
+    const n = f.NoteRecommandation; const note = (n === null || n === undefined || n === '' || isNaN(+n)) ? null : +n;
+    return {
+      date: toISO(f.DateAppel), affNum: t(f.NumAffaire ?? f.Title), affNom: t(f.NomAffaire),
+      charge: t(f.ChargeAffaires) || '(non renseigné)', tel: t(f.Telephone), enqueteur: t(f.Enqueteur) || nameFromEmail(t(f.EmailEnqueteur)),
+      repondu: norm(t(f.ClientARepondu)) === 'oui',
+      install: t(f.InstallationTerminee), appareil: t(f.SatisfactionAppareil), expli: t(f.Explications),
+      commercial: t(f.ConseilCommercial), note, macon: t(f.SatisfactionMacon), maconCoord: t(f.CoordMacon),
+      remarques: t(f.Remarques), avis: t(f.AvisInternet),
+      com: { install: t(f.ComInstallation), appareil: t(f.ComAppareil), expli: t(f.ComExplications), commercial: t(f.ComCommercial), general: t(f.ComRemarques) }
+    };
+  }).filter(r => r.date);
+}
+const graphMode = () => !!(CONFIG.TENANT_ID && CONFIG.CLIENT_ID && CONFIG.SITE);
+$('bLogin').addEventListener('click', login);
+$('refresh').addEventListener('click', loadFromList);
+document.addEventListener('click', e => { if (e.target.id === 'toFile'){ e.preventDefault(); $('connect').classList.add('hidden'); $('drop').classList.remove('hidden'); } });
+(async () => {
+  if (!graphMode()) return;
+  $('drop').classList.add('hidden');
+  try { await handleRedirect(); } catch (e){ showConnect(); $('cErr').textContent = e.message; return; }
+  await loadFromList();
+})();
+</script>
+</body>
+</html>
